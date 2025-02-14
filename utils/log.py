@@ -8,8 +8,8 @@ from sys import stderr, stdout
 
 from loguru import logger
 
-from app.core import path_conf
-from app.core.conf import settings
+from core import path_conf
+from core.conf import settings
 
 
 class InterceptHandler(logging.Handler):

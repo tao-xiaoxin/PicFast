@@ -1,0 +1,13 @@
+fastapi==0.115.8
+uvicorn==0.34.0
+python-dotenv==1.0.1
+aiohttp==3.11.12
+redis==5.2.1
+loguru==0.7.3
+sqlalchemy==2.0.38
+pydantic-settings==2.4.0
+pydantic<=2.8.0
+pydantic-extra-types==2.2.0
+phonenumbers==8.13.54
+msgspec==0.19.0
+qiniu==7.15.0

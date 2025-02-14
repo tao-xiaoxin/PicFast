@@ -4,13 +4,14 @@ import zoneinfo
 
 from datetime import datetime
 
-from app.core.conf import settings
+from core.conf import settings
 
 
 class TimeZone:
     def __init__(self, tz: str = settings.DATETIME_TIMEZONE):
         self.tz_info = zoneinfo.ZoneInfo(tz)
 
+    @property
     def now(self) -> datetime:
         """
         获取时区时间

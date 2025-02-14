@@ -3,8 +3,8 @@
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
-from app.utils.log import log
-from app.utils.timezone import timezone
+from utils.log import log
+from utils.timezone import timezone
 
 
 class AccessMiddleware(BaseHTTPMiddleware):

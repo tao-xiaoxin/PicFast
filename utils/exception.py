@@ -9,14 +9,14 @@ from starlette.exceptions import HTTPException
 from starlette.middleware.cors import CORSMiddleware
 from uvicorn.protocols.http.h11_impl import STATUS_PHRASES
 import logging
-from app.utils.response import CustomResponseCode, StandardResponseCode
-from app.utils.response import APIResponse
-from app.utils.schema import (
+from utils.responses import CustomResponseCode, StandardResponseCode
+from utils.responses import APIResponse
+from utils.schema import (
     CUSTOM_USAGE_ERROR_MESSAGES,
     CUSTOM_VALIDATION_ERROR_MESSAGES,
 )
-from app.core.conf import settings
-from app.utils.serializers import JsonResponse
+from core.conf import settings
+from utils.serializers import JsonResponse
 from fastapi import HTTPException
 from starlette.background import BackgroundTask
 

@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 import os
 from fastapi import FastAPI
-from app.core.conf import settings
+from core.conf import settings
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.core.path_conf import STATIC_DIR
-from app.middleware.access_middleware import AccessMiddleware
-from app.utils.exception import register_exception
-from app.utils.log import set_customize_logfile, setup_logging
-from app.utils.serializers import JsonResponse
-from app.core.router import routers as main_router
-from app.core.model_registrar import initialize_models
+from core.path_conf import STATIC_DIR
+from middleware.access_middleware import AccessMiddleware
+from utils.exception import register_exception
+from utils.log import set_customize_logfile, setup_logging
+from utils.serializers import JsonResponse
+from core.router import routers as main_router
 
 
 def register_app():
@@ -43,9 +42,6 @@ def register_app():
     # 全局异常处理
     register_exception(app)
 
-    # 初始化模型
-    initialize_models()
-
     return app
 
 
@@ -73,8 +69,6 @@ def register_static_file(app: FastAPI):
         app.mount("/media", StaticFiles(directory=settings.MEDIA_ROOT), name="media")
 
 
-#
-#
 def register_middleware(app: FastAPI):
     """
     中间件，执行顺序从下往上

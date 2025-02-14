@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
 import os.path
 from functools import lru_cache
-from typing import Literal, List
+from typing import Literal, Optional
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from app.core.path_conf import BASE_DIR
+from core.path_conf import BASE_DIR
 
 
 class Settings(BaseSettings):
     """Global Settings"""
-    os.environ['GRADIO_ANALYTICS_ENABLED'] = '0'
 
     model_config = SettingsConfigDict(env_file=f'{BASE_DIR}/.env', env_file_encoding='utf-8', extra='ignore')
 
     # Env Config
-    ENVIRONMENT: Literal['dev', 'pro',"test"]
+    ENVIRONMENT: Literal['dev', 'pro', "test"]
 
     # Env Token
     TOKEN_SECRET_KEY: str  # 密钥 secrets.token_urlsafe(32)
@@ -31,13 +30,18 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # FastAPI
-    API_V1_STR: str = '/v1'
-    PROJECT_NAME: str = "AI-Tools"
-    PROJECT_VERSION: str = "0.2.1"
-    DESCRIPTION: str = 'AI 能力集成平台'
-    DOCS_URL: str | None = f'{API_V1_STR}/docs'
-    REDOCS_URL: str | None = f'{API_V1_STR}/redocs'
-    OPENAPI_URL: str | None = f'{API_V1_STR}/openapi'
+    # API版本
+    API_V1_STR: str = "/api/v1"  # 注意这里添加了前导斜杠
+
+    # 项目信息
+    PROJECT_NAME: str = "PicFast"
+    PROJECT_VERSION: str = "0.1.0"
+    DESCRIPTION: str = "PicFast 是一款高效、快速的图片缓存服务"
+
+    # API文档
+    DOCS_URL: Optional[str] = f"{API_V1_STR}/docs"
+    REDOCS_URL: Optional[str] = f"{API_V1_STR}/redocs"
+    OPENAPI_URL: Optional[str] = f"{API_V1_STR}/openapi"
 
     # Middleware
     MIDDLEWARE_CORS: bool = True
@@ -53,15 +57,39 @@ class Settings(BaseSettings):
     # Static Server
     STATIC_FILES: bool = True
 
-    # Location Parse
-    LOCATION_PARSE: Literal['online', 'offline', 'false'] = 'offline'
-
     # Limiter
     # LIMITER_REDIS_PREFIX: str = 'limiter'
 
     # DateTime
     DATETIME_TIMEZONE: str = 'Asia/Shanghai'
     DATETIME_FORMAT: str = '%Y-%m-%d %H:%M:%S'
+
+    """Redis配置"""
+    # Redis连接配置
+    REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
+    REDIS_PASSWORD: Optional[str] = os.getenv("REDIS_PASSWORD", None)
+    REDIS_DB: int = int(os.getenv("REDIS_DB", "0"))
+
+    # Redis缓存配置
+    REDIS_KEY_PREFIX: str = os.getenv("REDIS_KEY_PREFIX", "picfast:")
+    REDIS_DEFAULT_EXPIRE: int = int(os.getenv("REDIS_DEFAULT_EXPIRE", "86400"))  # 默认1天
+
+    """MySQL配置"""
+    # MySQL连接配置
+    MYSQL_HOST: str = os.getenv("MYSQL_HOST", "localhost")
+    MYSQL_PORT: int = int(os.getenv("MYSQL_PORT", "3306"))
+    MYSQL_USER: str = os.getenv("MYSQL_USER", "root")
+    MYSQL_PASSWORD: str = os.getenv("MYSQL_PASSWORD", "")
+    MYSQL_DATABASE: str = os.getenv("MYSQL_DATABASE", "picfast")
+
+    # MySQL连接池配置
+    MYSQL_POOL_SIZE: int = int(os.getenv("MYSQL_POOL_SIZE", "5"))
+    MYSQL_POOL_RECYCLE: int = int(os.getenv("MYSQL_POOL_RECYCLE", "3600"))
+    MYSQL_MAX_OVERFLOW: int = int(os.getenv("MYSQL_MAX_OVERFLOW", "10"))
+
+    # MySQL连接特性配置
+    MYSQL_CHARSET: str = os.getenv("MYSQL_CHARSET", "utf8mb4")
 
     # # Token
     # TOKEN_ALGORITHM: str = 'HS256'  # 算法
@@ -92,21 +120,8 @@ class Settings(BaseSettings):
     AUDIO_MODEL_PATH: str = os.path.join(models_dir, "audio_models")
     VIDEO_MODEL_PATH: str = os.path.join(models_dir, "video_models")
 
-    # 文件上传配置
-    MAX_UPLOAD_SIZE: int = 500 * 1024 * 1024  # 500 MB
-    ALLOWED_AUDIO_EXTENSIONS: List[str] = ['.mp3', '.wav', '.ogg', '.flac', '.m4a']
-    ALLOWED_VIDEO_EXTENSIONS: List[str] = ['.mp4', '.avi', '.mov', '.wmv', '.flv']
-
     # 媒体文件存储路径
-    if ENVIRONMENT == "dev":
-        MEDIA_ROOT: str = os.path.join(BASE_DIR, "media")
-    else:
-        MEDIA_ROOT: str = "/gwm-tmp/ai_data/media"
-
-    # 指定显卡设备
-    DEVICE1: str = os.getenv("DEVICE1", "cuda:3")
-    DEVICE2: str = os.getenv("DEVICE2", "cuda:3")
-    DEVICE3: str = os.getenv("DEVICE3", "cuda:3")
+    MEDIA_ROOT: str = os.path.join(BASE_DIR, "media")
 
     UPLOADS_DIR: str = os.path.join(MEDIA_ROOT, "uploads")
     PROCESSED_DIR: str = os.path.join(MEDIA_ROOT, "processed")
@@ -123,17 +138,12 @@ class Settings(BaseSettings):
     DOCUMENTS_PROCESSED_DIR: str = os.path.join(PROCESSED_DIR, "documents")
     IMAGES_PROCESSED_DIR: str = os.path.join(PROCESSED_DIR, "images")
 
-    # 文件解密相关配置
-    FILE_DECRYPT_APP_KEY: str = os.getenv("FILE_DECRYPT_APP_KEY", "BMBSXX1T0TXX")
-    FILE_DECRYPT_APP_SECRET: str = os.getenv("FILE_DECRYPT_APP_SECRET", "f72ca82420664f589c2bee55b1680364")
-    FILE_DECRYPT_API_URL: str = os.getenv("FILE_DECRYPT_API_URL", "https://gwapi.gwm.cn/rest/sec/cdg/file_decrypt")
-
-    # OSS 配置
-    OSS_ACCESS_KEY_ID: str = "2498EtVmPG3jZ2R1"
-    OSS_ACCESS_KEY_SECRET: str = "KKhnSHakXosPEFVX2PgGQF91rO4DJP"
-    OSS_BUCKET: str = "ailib-prod"
-    OSS_ENDPOINT: str = "http://oss0c83-cn-baoding-gwmcloud-d01-a.ops.cloud.gwm.cn"
-    OSS_BUSINESS_MEDIA_PATH: str = "aitools/media/"
+    # 七牛云配置
+    QINIU_ACCESS_KEY: str = os.getenv("QINIU_ACCESS_KEY", "")
+    QINIU_SECRET_KEY: str = os.getenv("QINIU_SECRET_KEY", "")
+    QINIU_BUCKET_NAME: str = os.getenv("QINIU_BUCKET_NAME", "")
+    QINIU_DOMAIN: str = os.getenv("QINIU_DOMAIN", "")
+    QINIU_BUSINESS_MEDIA_PATH: str = os.getenv("QINIU_BUSINESS_MEDIA_PATH", "")
 
     def create_media_dirs(self):
         """创建必要的媒体目录"""
