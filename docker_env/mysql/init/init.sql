@@ -1,0 +1,6 @@
+CREATE DATABASE IF NOT EXISTS picfast_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 创建用户并授权
+CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY 'ZH$$ewA38pjgyn';
+GRANT ALL PRIVILEGES ON picfast_db.* TO 'root'@'%';
+FLUSH PRIVILEGES;

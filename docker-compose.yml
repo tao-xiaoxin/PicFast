@@ -1,0 +1,48 @@
+services:
+  pf-redis:
+    image: redis:7.2.4-alpine
+    container_name: pf-redis
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./docker_env/redis/data:/data
+      - ./docker_env/redis/redis.conf:/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    sysctls:
+      - net.core.somaxconn=1024
+    command: "/bin/sh -c 'echo \"vm.overcommit_memory = 1\" >> /etc/sysctl.conf && redis-server /etc/redis/redis.conf'"
+    privileged: true
+    networks:
+      network:
+        ipv4_address: 177.10.0.11
+
+  pf-mysql:
+    image: mysql:8.4.2
+    container_name: pf-mysql
+    privileged: true
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "ZH$$ewA38pjgyn"
+      MYSQL_DATABASE: "picfast_db"
+      MYSQL_USER: root
+      MYSQL_PASSWORD: "ZH$$ewA38pjgyn"
+      TZ: Asia/Shanghai
+    volumes:
+      - ./docker_env/mysql/config:/etc/mysql/conf.d
+      - ./docker_env/mysql/data:/var/lib/mysql
+      - ./docker_env/mysql/log:/var/log
+      - ./docker_env/mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      network:
+        ipv4_address: 177.10.0.12
+
+networks:
+  network:
+    ipam:
+      driver: default
+      config:
+        - subnet: '177.10.0.0/24'
