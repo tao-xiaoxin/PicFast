@@ -68,8 +68,9 @@ class Settings(BaseSettings):
     # Redis连接配置
     REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
     REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
-    REDIS_PASSWORD: Optional[str] = os.getenv("REDIS_PASSWORD", None)
+    REDIS_PASSWORD: Optional[str] = os.getenv("REDIS_PASSWORD", '')
     REDIS_DB: int = int(os.getenv("REDIS_DB", "0"))
+    REDIS_TIMEOUT: int = int(os.getenv("REDIS_TIMEOUT", "3600"))
 
     # Redis缓存配置
     REDIS_KEY_PREFIX: str = os.getenv("REDIS_KEY_PREFIX", "picfast:")
@@ -82,11 +83,6 @@ class Settings(BaseSettings):
     MYSQL_USER: str = os.getenv("MYSQL_USER", "root")
     MYSQL_PASSWORD: str = os.getenv("MYSQL_PASSWORD", "")
     MYSQL_DATABASE: str = os.getenv("MYSQL_DATABASE", "picfast")
-
-    # MySQL连接池配置
-    MYSQL_POOL_SIZE: int = int(os.getenv("MYSQL_POOL_SIZE", "5"))
-    MYSQL_POOL_RECYCLE: int = int(os.getenv("MYSQL_POOL_RECYCLE", "3600"))
-    MYSQL_MAX_OVERFLOW: int = int(os.getenv("MYSQL_MAX_OVERFLOW", "10"))
 
     # MySQL连接特性配置
     MYSQL_CHARSET: str = os.getenv("MYSQL_CHARSET", "utf8mb4")
@@ -113,30 +109,11 @@ class Settings(BaseSettings):
     LOG_STDOUT_FILENAME: str = 'access.log'
     LOG_STDERR_FILENAME: str = 'error.log'
 
-    # AI Models Path
-    models_dir: str = "/data/ai_models"
-    TEXT_MODEL_PATH: str = os.path.join(models_dir, "text_models")
-    IMAGE_MODEL_PATH: str = os.path.join(models_dir, "image_models")
-    AUDIO_MODEL_PATH: str = os.path.join(models_dir, "audio_models")
-    VIDEO_MODEL_PATH: str = os.path.join(models_dir, "video_models")
-
     # 媒体文件存储路径
     MEDIA_ROOT: str = os.path.join(BASE_DIR, "media")
 
     UPLOADS_DIR: str = os.path.join(MEDIA_ROOT, "uploads")
     PROCESSED_DIR: str = os.path.join(MEDIA_ROOT, "processed")
-
-    # 上传目录
-    AUDIO_UPLOADS_DIR: str = os.path.join(UPLOADS_DIR, "audio")
-    VIDEO_UPLOADS_DIR: str = os.path.join(UPLOADS_DIR, "video")
-    DOCUMENTS_DIR: str = os.path.join(UPLOADS_DIR, "documents")
-    IMAGES_UPLOADS_DIR: str = os.path.join(UPLOADS_DIR, "images")
-
-    # 处理后的输出目录
-    AUDIO_PROCESSED_DIR: str = os.path.join(PROCESSED_DIR, "audio")
-    VIDEO_PROCESSED_DIR: str = os.path.join(PROCESSED_DIR, "video")
-    DOCUMENTS_PROCESSED_DIR: str = os.path.join(PROCESSED_DIR, "documents")
-    IMAGES_PROCESSED_DIR: str = os.path.join(PROCESSED_DIR, "images")
 
     # 七牛云配置
     QINIU_ACCESS_KEY: str = os.getenv("QINIU_ACCESS_KEY", "")
