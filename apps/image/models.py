@@ -3,12 +3,12 @@
 Created by: tao-xiaoxin
 Created time: 2025-02-14 07:18:52
 """
-from sqlalchemy import Column, String, DateTime, BigInteger
-from database.base import Base
+from sqlalchemy import BigInteger, String, DateTime, Column
+from sqlalchemy.orm import DeclarativeBase
 from utils.timezone import timezone
 
 
-class ImageModels(Base):
+class ImageModels(DeclarativeBase):
     """图片模型"""
     __tablename__ = "pf_images"
 

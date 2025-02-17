@@ -1,16 +1,43 @@
 """
-数据模型
+图片模型验证
 Created by: tao-xiaoxin
-Created time: 2025-02-14 06:06:29
+Created time: 2025-02-17 02:01:19
 """
 
-from pydantic import BaseModel, HttpUrl
+from datetime import datetime
+from typing import Optional
+from pydantic import BaseModel
+
+
+class ImageCreate(BaseModel):
+    """创建图片模型"""
+    key: str
+    original_name: Optional[str] = None
+    extension: str
+    size: int
+    mime_type: str
+    storage_path: str
+
+
+class ImageUpdate(BaseModel):
+    """更新图片模型"""
+    original_name: Optional[str] = None
+    storage_path: Optional[str] = None
+    view_count: Optional[int] = None
+
 
 class ImageResponse(BaseModel):
-    """图片上传响应模型"""
-    key: str  # 图片的MD5值
-    url: HttpUrl  # 图片的访问URL
+    """图片响应模型"""
+    id: int
+    key: str
+    original_name: Optional[str]
+    extension: str
+    size: int
+    mime_type: str
+    storage_path: str
+    view_count: int
+    created_at: datetime
+    updated_at: datetime
 
-class ErrorResponse(BaseModel):
-    """错误响应模型"""
-    detail: str
+    class Config:
+        from_attributes = True

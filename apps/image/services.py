@@ -7,7 +7,7 @@ Created time: 2025-02-14 06:06:29
 from typing import Dict, Optional
 from fastapi import UploadFile
 from utils.qiniu_manager import qiniu_manager
-from utils.file_processors import get_file_md5
+from utils.file_processors import get_file_md5, get_file_extension
 
 
 class ImageService:
@@ -25,21 +25,22 @@ class ImageService:
             content = await file.read()
 
             # 计算MD5值作为key
-            key = get_file_md5(content)
-
+            file_key = get_file_md5(content)
+            file_extension = get_file_extension(file.filename)
+            new_file_name = file_key + "." + file_extension
             # 使用七牛云管理器上传图片
-            url = qiniu_manager.upload_bytes(content, f"images/{key}")
-
-            if url:
-                return {
-                    "success": True,
-                    "key": key,
-                    "url": url
-                }
-            return {
-                "success": False,
-                "error": "Failed to upload to qiniu"
-            }
+            url = qiniu_manager.upload_bytes(content, new_file_name)
+            print("url", url)
+            # if url:
+            #     return {
+            #         "success": True,
+            #         "key": key,
+            #         "url": url
+            #     }
+            # return {
+            #     "success": False,
+            #     "error": "Failed to upload to qiniu"
+            # }
         except Exception as e:
             return {
                 "success": False,

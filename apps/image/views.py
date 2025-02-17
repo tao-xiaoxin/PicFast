@@ -4,7 +4,7 @@ Created by: tao-xiaoxin
 Created time: 2025-02-14 06:25:20
 """
 
-from fastapi import HTTPException, UploadFile, File, Request
+from fastapi import UploadFile, File, Request
 from utils.responses import APIResponse, ResponseModel
 from apps.image.services import ImageService
 
