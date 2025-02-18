@@ -88,7 +88,7 @@ class ImageService:
 
             # 将十六进制字符串转回二进制
             data["content"] = bytes.fromhex(data["content"])
-
+            data['original_name'] = f"{file_key}.{str(data['mime_type']).strip('/')[-1]}"
             return data
 
         except Exception as e:
