@@ -81,7 +81,7 @@ class ImageService:
 
                 return {
                     "success": True,
-                    "key": file_key,
+                    "file_key": storage_path,
                 }
 
             except Exception as db_error:
@@ -133,7 +133,7 @@ class ImageService:
             await db.commit()
 
             # 从七牛云获取图片内容
-            content = qiniu_manager.get_file_bytes(db_image.storage_path)
+            content = qiniu.get_file_bytes(db_image.storage_path)
 
             if not content:
                 raise HTTPException(
@@ -191,7 +191,7 @@ class ImageService:
                 )
 
             # 删除七牛云文件
-            qiniu_manager.delete_file(db_image.storage_path)
+            qiniu.delete_file(db_image.storage_path)
 
             # 删除数据库记录
             success = await ImageCRUD.delete_image(db, db_image.id)

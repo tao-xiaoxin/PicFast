@@ -28,15 +28,8 @@ class ImageUpdate(BaseModel):
 
 class ImageResponse(BaseModel):
     """图片响应模型"""
-    id: int
-    key: str
-    original_name: Optional[str]
-    size: float
-    mime_type: str
-    storage_path: str
-    view_count: int
-    created_at: datetime
-    updated_at: datetime
+    success: bool
+    file_key: str
 
     class Config:
         from_attributes = True

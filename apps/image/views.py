@@ -7,8 +7,8 @@ Created time: 2025-02-14 06:25:20
 from fastapi import APIRouter, File, UploadFile, Request
 from core.engine import CurrentSession
 from apps.image.services import ImageService
-from apps.image.schemas import ImageResponse
 from utils.responses import APIResponse, ResponseModel
+from apps.image.schemas import ImageResponse
 
 
 async def upload_image(
@@ -39,11 +39,11 @@ async def upload_image(
         if result["success"]:
             return APIResponse.success(
                 data=ImageResponse(**result),
-                msg="Image uploaded successfully"
+                msg="Image uploaded successfully！"
             )
 
         return APIResponse.error(
-            msg=result.get("error", "Upload failed"),
+            msg="Upload failed！",
             code=400
         )
 
