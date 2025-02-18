@@ -1,5 +1,6 @@
 import os
 import logging
+import urllib.request
 from typing import Dict, Optional, Tuple
 from qiniu import Auth, put_file, put_data, BucketManager
 from core.conf import settings
@@ -118,14 +119,104 @@ class QiniuManager:
         Returns:
             str: 文件访问URL
         """
+        base_url = f'http://{self.domain}/{key}'
         if expires:
-            # 生成私有下载链接
             return self.auth.private_download_url(
-                f"{self.domain}/{key}",
+                base_url,
                 expires=expires
             )
         # 生成公开访问链接
-        return f"{self.domain}/{key}"
+        return base_url
+
+    def get_file_bytes(self, key: str) -> Tuple[bool, Dict]:
+        """
+        从七牛云获取文件字节内容
+
+        Args:
+            key: 文件存储键值
+
+        Returns:
+            Tuple[bool, Dict]: (是否成功, 结果信息)
+                成功时返回: (True, {"content": bytes, "url": str})
+                失败时返回: (False, {"error": str})
+        """
+        try:
+            # 生成下载链接
+            url = self.get_file_url(key)
+
+            # 下载文件内容
+            response = urllib.request.urlopen(url)
+            content = response.read()
+
+            if response.status == 200:
+                return True, {
+                    "content": content,
+                    "url": url
+                }
+            else:
+                return False, {
+                    "error": f"Failed to download file: HTTP {response.status}"
+                }
+
+        except Exception as e:
+            logger.error(f"Error getting file bytes: {str(e)}")
+            return False, {"error": str(e)}
+
+    def get_file_stat(self, key: str) -> Tuple[bool, Dict]:
+        """
+        获取文件状态信息
+
+        Args:
+            key: 文件存储键值
+
+        Returns:
+            Tuple[bool, Dict]: (是否成功, 结果信息)
+                成功时返回: (True, {
+                    "hash": str,          # 文件哈希值
+                    "fsize": int,         # 文件大小
+                    "mimeType": str,      # MIME类型
+                    "putTime": int,       # 上传时间
+                    "type": int,          # 存储类型
+                    "status": int         # 状态
+                })
+                失败时返回: (False, {"error": str})
+        """
+        try:
+            ret, info = self.bucket_manager.stat(self.bucket_name, key)
+
+            if info.status_code == 200 and ret:
+                return True, {
+                    "hash": ret.get("hash", ""),
+                    "fsize": ret.get("fsize", 0),
+                    "mimeType": ret.get("mimeType", "application/octet-stream"),
+                    "putTime": ret.get("putTime", 0),
+                    "type": ret.get("type", 0),
+                    "status": ret.get("status", 0)
+                }
+
+            error_msg = f"Failed to get file stat: {info.error}"
+            logger.error(error_msg)
+            return False, {"error": error_msg}
+
+        except Exception as e:
+            error_msg = f"Error getting file stat: {str(e)}"
+            logger.error(error_msg)
+            return False, {"error": error_msg}
+
+    def get_mime_type(self, key: str) -> Optional[str]:
+        """
+        获取文件的MIME类型
+
+        Args:
+            key: 文件存储键值
+
+        Returns:
+            Optional[str]: MIME类型，获取失败返回None
+        """
+        success, result = self.get_file_stat(key)
+        if success:
+            return result.get("mimeType")
+        return None
 
 
 # 创建全局实例

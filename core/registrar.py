@@ -11,7 +11,7 @@ from core.conf import settings
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
-from core.engine import mysql_manager
+from core.engine import mysql_manager, redis_client
 from core.path_conf import STATIC_DIR
 from middleware.access_middleware import AccessMiddleware
 from utils.exception import register_exception
@@ -33,18 +33,8 @@ async def register_init(app: FastAPI):
     # 初始化数据库连接
     await mysql_manager.init_database()
 
-    # 创建数据库表
-    # await create_table()
-
     # 连接 redis
-    # await redis_client.open()
-
-    # 初始化 limiter
-    # await FastAPILimiter.init(
-    #     redis_client,
-    #     prefix=settings.LIMITER_REDIS_PREFIX,
-    #     http_callback=http_limit_callback
-    # )
+    await redis_client.open()
 
     yield  # 应用运行时
 
@@ -52,7 +42,7 @@ async def register_init(app: FastAPI):
     await mysql_manager.close_database()
 
     # 关闭 redis 连接
-    # await redis_client.close()
+    await redis_client.close()
 
 
 def register_app():
