@@ -171,3 +171,5 @@ logs/
 # FastAPI
 media
 tests
+/docker_env/mysql/data/
+/docker_env/redis/data/
