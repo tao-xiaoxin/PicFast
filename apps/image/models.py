@@ -15,7 +15,6 @@ class ImageModels(DeclarativeBase):
     id = Column(BigInteger, primary_key=True, autoincrement=True, comment="图片ID")
     key = Column(String(32), unique=True, nullable=False, comment="图片唯一标识(MD5)")
     original_name = Column(String(255), nullable=True, comment="原始文件名")
-    extension = Column(String(10), nullable=False, comment="文件后缀")
     size = Column(BigInteger, nullable=False, comment="文件大小(字节)")
     mime_type = Column(String(128), nullable=False, comment="文件MIME类型")
     storage_path = Column(String(255), nullable=False, comment="存储路径")
