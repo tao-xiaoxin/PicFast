@@ -3,19 +3,19 @@
 Created by: tao-xiaoxin
 Created time: 2025-02-14 07:18:52
 """
-from sqlalchemy import BigInteger, String, DateTime, Column
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy import BigInteger, String, DateTime, Column, Float
+from utils.database import MappedBase
 from utils.timezone import timezone
 
 
-class ImageModels(DeclarativeBase):
+class ImageModels(MappedBase):
     """图片模型"""
     __tablename__ = "pf_images"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True, comment="图片ID")
     key = Column(String(32), unique=True, nullable=False, comment="图片唯一标识(MD5)")
     original_name = Column(String(255), nullable=True, comment="原始文件名")
-    size = Column(BigInteger, nullable=False, comment="文件大小(字节)")
+    size = Column(Float(precision=10, decimal_return_scale=2), nullable=False, comment="文件大小(字节)")
     mime_type = Column(String(128), nullable=False, comment="文件MIME类型")
     storage_path = Column(String(255), nullable=False, comment="存储路径")
     view_count = Column(BigInteger, default=0, nullable=False, comment="浏览次数")

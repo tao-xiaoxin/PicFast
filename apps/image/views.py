@@ -4,14 +4,17 @@ Created by: tao-xiaoxin
 Created time: 2025-02-14 06:25:20
 """
 
-from fastapi import UploadFile, File, Request
-from utils.responses import APIResponse, ResponseModel
+from fastapi import APIRouter, File, UploadFile, Request
+from core.engine import CurrentSession
 from apps.image.services import ImageService
+from apps.image.schemas import ImageResponse
+from utils.responses import APIResponse, ResponseModel
 
 
 async def upload_image(
         request: Request,
-        file: UploadFile = File(..., description="要上传的图片文件")
+        db: CurrentSession,  # 使用 CurrentSession 类型注解
+        file: UploadFile = File(..., description="要上传的图片文件"),
 ) -> ResponseModel:
     """
     处理图片上传
@@ -20,6 +23,7 @@ async def upload_image(
 
     Args:
         request: FastAPI请求对象
+        db : 数据库连接对象
         file: 要上传的图片文件
 
     Returns:
@@ -28,23 +32,24 @@ async def upload_image(
     Raises:
         HTTPException: 上传失败时抛出异常
     """
+
     try:
-        result = await ImageService.upload_image(file)
-        if result.get('success'):
+        result = await ImageService.upload_image(file, db)
+
+        if result["success"]:
             return APIResponse.success(
-                data={
-                    'key': result['key'],
-                    'url': result['url']
-                },
-                msg="图片上传成功"
+                data=ImageResponse(**result),
+                msg="Image uploaded successfully"
             )
+
         return APIResponse.error(
-            msg="图片上传失败",
-            code=500
+            msg=result.get("error", "Upload failed"),
+            code=400
         )
+
     except Exception as e:
         return APIResponse.error(
-            msg=f"图片上传异常：{str(e)}",
+            msg=f"Upload failed: {str(e)}",
             code=500
         )
 

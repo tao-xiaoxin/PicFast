@@ -4,15 +4,18 @@ Created by: tao-xiaoxin
 Created time: 2025-02-17 00:28:27
 """
 import sys
-from typing import Any, Dict, List, Union, Tuple
+from typing import Any, Dict, List, Union, Tuple, AsyncGenerator
 from dbutils.pooled_db import PooledDB
 import pymysql
 from redis.asyncio.client import Redis
 from redis.exceptions import AuthenticationError, TimeoutError
 from typing import Annotated, Optional, Type
-from sqlalchemy import URL
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy import URL, text
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine
+)
 from fastapi import Depends
 from utils.log import log
 from core.conf import settings
@@ -20,23 +23,33 @@ from core.conf import settings
 
 class MySQLManager:
     """数据库管理类"""
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        """单例模式"""
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     def __init__(
             self,
-            database_url: Optional[str | URL] = None,
-            echo: bool = False
+            echo: bool = False,
+            database_url: Optional[str | URL] = None
     ):
         """
         初始化数据库管理器
 
         Args:
-            database_url: 数据库连接URL
             echo: 是否打印SQL语句
+            database_url: 数据库连接URL
         """
-        self.database_url = database_url or self._get_default_database_url()
-        self.echo = echo
-        self.engine = None
-        self.async_session = None
+        # 防止重复初始化
+        if not hasattr(self, 'initialized'):
+            self.database_url = database_url or self._get_default_database_url()
+            self.echo = echo
+            self.engine = None
+            self.async_session = None
+            self.initialized = False
 
     @staticmethod
     def _get_default_database_url() -> str:
@@ -47,65 +60,77 @@ class MySQLManager:
             f'?charset={settings.MYSQL_CHARSET}'
         )
 
-    def init_database(self) -> None:
+    async def init_database(self) -> None:
         """初始化数据库连接"""
+        if self.initialized:
+            return
+
         try:
+            # 检查必要的包是否已安装
+            try:
+                import asyncmy
+            except ImportError:
+                log.error('❌ Required package "asyncmy" is not installed. Please run: pip install asyncmy')
+                log.info(
+                    '💡 You can also install all required database packages with: pip install "sqlalchemy[asyncio]" asyncmy aiomysql')
+                sys.exit(1)
+
             self.engine = create_async_engine(
                 self.database_url,
-                echo=self.echo,
+                echo=settings.MYSQL_ECHO,
                 future=True,
-                pool_pre_ping=True
+                pool_pre_ping=True,
+                pool_size=settings.MYSQL_POOL_SIZE,
+                max_overflow=settings.MYSQL_MAX_OVERFLOW
             )
+
             self.async_session = async_sessionmaker(
                 bind=self.engine,
                 autoflush=False,
                 expire_on_commit=False
             )
+
+            # 测试连接
+            async with self.engine.begin() as conn:
+                # 使用 text() 函数包装 SQL 语句
+                await conn.execute(text("SELECT 1"))
+
+            self.initialized = True
             log.success('✅ Database connection established successfully')
+
+        except ImportError as e:
+            log.error(f'❌ Import Error: {str(e)}')
+            log.info('💡 Please install required packages')
+            sys.exit(1)
         except Exception as e:
-            log.error('❌ Database connection failed: {}', str(e))
+            log.error(f'❌ Database connection failed: {str(e)}')
+            if "Access denied" in str(e):
+                log.error('❌ Database access denied. Please check your credentials.')
+            elif "Can't connect" in str(e):
+                log.error('❌ Cannot connect to database. Please check if the database server is running.')
             sys.exit(1)
 
-    async def create_tables(self, base: Type[DeclarativeBase]) -> None:
-        """
-        创建所有数据库表
+    async def close_database(self) -> None:
+        """关闭数据库连接"""
+        if self.engine:
+            await self.engine.dispose()
+            self.initialized = False
+            log.success('✅ Database connection closed successfully')
 
-        Args:
-            base: SQLAlchemy 声明性基类
+    async def get_db(self) -> AsyncGenerator[AsyncSession, None]:
         """
-        try:
-            async with self.engine.begin() as conn:
-                await conn.run_sync(base.metadata.create_all)
-            log.success('✅ Database tables created successfully')
-        except Exception as e:
-            log.error('❌ Failed to create database tables: {}', str(e))
-            raise
-
-    async def drop_tables(self, base: Type[DeclarativeBase]) -> None:
-        """
-        删除所有数据库表
-
-        Args:
-            base: SQLAlchemy 声明性基类
-        """
-        try:
-            async with self.engine.begin() as conn:
-                await conn.run_sync(base.metadata.drop_all)
-            log.success('✅ Database tables dropped successfully')
-        except Exception as e:
-            log.error('❌ Failed to drop database tables: {}', str(e))
-            raise
-
-    async def get_session(self) -> AsyncSession:
-        """
-        获取数据库会话
+        获取数据库会话的依赖函数
 
         Yields:
-            AsyncSession: 异步数据库会话
+            AsyncSession: 异步数据库会话对象
         """
+        if not self.initialized:
+            await self.init_database()
+
         session = self.async_session()
         try:
             yield session
+            await session.commit()
         except Exception as e:
             await session.rollback()
             raise e
@@ -501,7 +526,9 @@ class RedisClient(Redis):
 
 # 创建 redis 客户端实例
 redis_client = RedisClient()
+# 创建全局 MySQL 管理器实例
+mysql_manager = MySQLManager()
 # 创建会话依赖
-CurrentSession = Annotated[AsyncSession, Depends(MySQLManager().get_session)]
+CurrentSession = Annotated[AsyncSession, Depends(mysql_manager.get_db)]
 # 创建默认数据库连接池实例
 default_db_pool = PyMySQLConnectionPool()

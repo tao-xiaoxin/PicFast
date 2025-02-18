@@ -13,17 +13,17 @@ class ImageCreate(BaseModel):
     """创建图片模型"""
     key: str
     original_name: Optional[str] = None
-    extension: str
-    size: int
+    size: float
     mime_type: str
     storage_path: str
+    view_count: Optional[int] = 0
 
 
 class ImageUpdate(BaseModel):
     """更新图片模型"""
     original_name: Optional[str] = None
     storage_path: Optional[str] = None
-    view_count: Optional[int] = None
+    view_count: Optional[int] = 0
 
 
 class ImageResponse(BaseModel):
@@ -31,8 +31,7 @@ class ImageResponse(BaseModel):
     id: int
     key: str
     original_name: Optional[str]
-    extension: str
-    size: int
+    size: float
     mime_type: str
     storage_path: str
     view_count: int

@@ -47,7 +47,6 @@ class Settings(BaseSettings):
     MIDDLEWARE_CORS: bool = True
     MIDDLEWARE_ACCESS: bool = True
 
-    @model_validator(mode='before')
     @classmethod
     def validate_openapi_url(cls, values):
         if values['ENVIRONMENT'] == 'pro':
@@ -84,6 +83,11 @@ class Settings(BaseSettings):
     MYSQL_PASSWORD: str = os.getenv("MYSQL_PASSWORD", "")
     MYSQL_DATABASE: str = os.getenv("MYSQL_DATABASE", "picfast")
 
+    # 数据库连接池配置
+    MYSQL_POOL_SIZE: int = os.getenv("MYSQL_POOL_SIZE", 5)  # 连接池大小
+    MYSQL_MAX_OVERFLOW: int = os.getenv("MYSQL_MAX_OVERFLOW", 10)  # 最大溢出连接数
+    MYSQL_ECHO: bool = os.getenv("MYSQL_ECHO", False)  # 是否打印SQL语句
+
     # MySQL连接特性配置
     MYSQL_CHARSET: str = os.getenv("MYSQL_CHARSET", "utf8mb4")
 
@@ -111,7 +115,6 @@ class Settings(BaseSettings):
 
     # 媒体文件存储路径
     MEDIA_ROOT: str = os.path.join(BASE_DIR, "media")
-
     UPLOADS_DIR: str = os.path.join(MEDIA_ROOT, "uploads")
     PROCESSED_DIR: str = os.path.join(MEDIA_ROOT, "processed")
 

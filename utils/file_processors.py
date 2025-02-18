@@ -3,7 +3,7 @@
 Created by: tao-xiaoxin
 Created time: 2025-02-17 06:35:40
 """
-
+import math
 import os
 import base64
 import hashlib
@@ -36,6 +36,41 @@ def get_file_md5(file_content: Union[bytes, str]) -> str:
     except Exception as e:
         logger.error(f"Failed to calculate MD5: {str(e)}")
         raise
+
+
+def convert_size(size_bytes: int) -> Union[float, str]:
+    """
+    将字节大小转换为合适的单位
+
+    Args:
+        size_bytes: 文件大小（字节）
+
+    Returns:
+        Union[float, str]: 转换后的大小，保留两位小数
+
+    Examples:
+        >>> convert_size(1234)
+        '1.21 KB'
+        >>> convert_size(1234567)
+        '1.18 MB'
+    """
+    if size_bytes == 0:
+        return "0 B"
+
+    # 定义单位
+    size_units = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+
+    # 计算单位的幂
+    power = int(math.log(size_bytes, 1024))
+
+    # 确保不超过最大单位
+    power = min(power, len(size_units) - 1)
+
+    # 计算最终大小
+    size = size_bytes / (1024 ** power)
+
+    # 返回格式化的字符串，保留两位小数
+    return f"{size:.2f} {size_units[power]}"
 
 
 def to_base64(file_content: Union[bytes, str]) -> str:
@@ -126,19 +161,23 @@ def get_file_extension(filename: str = None, mime_type: str = None) -> Optional[
         return None
 
 
-def get_file_info(file_path: str) -> Tuple[str, str, int]:
+def get_file_info(file_path: str) -> Tuple[str, str]:
     """
-    获取文件信息，包括扩展名、MIME类型和文件大小
+    获取文件信息，包括扩展名、MIME类型和文件大小（带单位）
 
     Args:
         file_path: 文件路径
 
     Returns:
-        Tuple[str, str, int]: 包含扩展名、MIME类型和文件大小的元组
+        Tuple[str, str]: 包含扩展名、文件大小（带单位）的元组
 
     Raises:
         FileNotFoundError: 当文件不存在时
         IOError: 当无法访问文件时
+
+    Examples:
+        >>> get_file_info("example.jpg")
+        ('jpg', '1.25 MB')
     """
     try:
         if not os.path.exists(file_path):
@@ -147,35 +186,32 @@ def get_file_info(file_path: str) -> Tuple[str, str, int]:
         # 获取文件扩展名
         extension = get_file_extension(file_path)
 
-        # 获取MIME类型
-        mime_type, _ = mimetypes.guess_type(file_path)
-
-        # 获取文件大小
+        # 获取文件大小并转换为合适的单位
         file_size = os.path.getsize(file_path)
+        formatted_size = convert_size(file_size)
 
-        return extension or "", mime_type or "application/octet-stream", file_size
+        return extension, formatted_size
 
     except Exception as e:
         logger.error(f"Failed to get file info: {str(e)}")
         raise
 
 
-# 初始化MIME类型映射
-mimetypes.init()
+def get_file_size_mb(size_bytes: int, decimal_places: int = 2) -> float:
+    """
+    将字节大小转换为MB单位
 
-# 添加常见的文件扩展名映射
-COMMON_EXTENSIONS = {
-    'image/jpeg': '.jpg',
-    'image/png': '.png',
-    'image/gif': '.gif',
-    'image/webp': '.webp',
-    'image/svg+xml': '.svg',
-    'application/pdf': '.pdf',
-    'text/plain': '.txt',
-    'text/html': '.html',
-    'application/json': '.json',
-    'application/xml': '.xml'
-}
+    Args:
+        size_bytes: 文件大小（字节）
+        decimal_places: 保留小数位数，默认为2
 
-for mime_type, ext in COMMON_EXTENSIONS.items():
-    mimetypes.add_type(mime_type, ext)
+    Returns:
+        float: MB为单位的文件大小
+
+    Examples:
+        >>> get_file_size_mb(1048576)  # 1MB
+        1.0
+        >>> get_file_size_mb(2097152)  # 2MB
+        2.0
+    """
+    return round(size_bytes / (1024 * 1024), decimal_places)

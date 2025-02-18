@@ -9,7 +9,7 @@ CREATE TABLE `pf_images`
     `id`            bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '图片ID',
     `key`           varchar(32)  NOT NULL COMMENT '图片唯一标识(MD5)',
     `original_name` varchar(255)          DEFAULT NULL COMMENT '原始文件名',
-    `size`          bigint       NOT NULL COMMENT '文件大小(字节)',
+    `size`          decimal(10,2) NOT NULL COMMENT '文件大小(MB)',  -- 使用 decimal(10,2) 保证精确度
     `mime_type`     varchar(128) NOT NULL COMMENT '文件MIME类型',
     `storage_path`  varchar(255) NOT NULL COMMENT '存储路径',
     `view_count`    bigint       NOT NULL DEFAULT '0' COMMENT '浏览次数',
