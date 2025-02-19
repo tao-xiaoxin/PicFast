@@ -13,7 +13,9 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from core.engine import mysql_manager, redis_client
 from core.path_conf import STATIC_DIR
+from starlette.middleware.authentication import AuthenticationMiddleware
 from middleware.access_middleware import AccessMiddleware
+from middleware.auth_middleware import AuthMiddleware
 from utils.exception import register_exception
 from utils.log import set_customize_logfile, setup_logging
 from utils.serializers import JsonResponse
@@ -114,6 +116,10 @@ def register_middleware(app: FastAPI):
     :param app:
     :return:
     """
+    # JWT auth (required)
+    app.add_middleware(
+        AuthenticationMiddleware, backend=AuthMiddleware(), on_error=AuthMiddleware.auth_exception_handler
+    )
     # Access log
     if settings.MIDDLEWARE_ACCESS:
         app.add_middleware(AccessMiddleware)

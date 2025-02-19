@@ -46,18 +46,3 @@ class TokenResponse(BaseModel):
     token_type: str = Field("bearer", description="令牌类型")
     expires_in: int = Field(..., description="访问令牌过期时间(秒)")
     refresh_expires_in: int = Field(..., description="刷新令牌过期时间(秒)")
-
-
-class CurrentUserModel(BaseModel):
-    """当前用户模型"""
-
-    id: int
-    username: str
-    email: Optional[str] = None
-    is_active: bool = True
-    is_superuser: bool = False
-    roles: List[str] = []
-    permissions: List[str] = []
-
-    class Config:
-        from_attributes = True

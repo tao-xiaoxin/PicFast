@@ -350,6 +350,12 @@ class TokenManager:
                 status_code=401,
                 detail="Could not validate token"
             )
+        except Exception as e:
+            log.error(f"Failed to decode token: {str(e)}")
+            raise HTTPException(
+                status_code=401,
+                detail="Could not decode token"
+            )
 
     async def verify_token(
             self,

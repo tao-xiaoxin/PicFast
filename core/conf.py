@@ -96,7 +96,7 @@ class Settings(BaseSettings):
     TOKEN_REFRESH_REDIS_PREFIX: str = 'pf:token:refresh'
 
     @property
-    def TOKEN_EXCLUDE(self) -> List[str]:
+    def AUTH_EXCLUDE_PATHS(self) -> List[str]:
         """
         JWT / RBAC 白名单
         使用 property 替代可变默认值
