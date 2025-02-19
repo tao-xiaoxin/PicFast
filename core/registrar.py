@@ -39,7 +39,7 @@ async def register_init(app: FastAPI):
     yield  # 应用运行时
 
     # 关闭数据库连接
-    await mysql_manager.close_database()
+    # await mysql_manager.close_database()
 
     # 关闭 redis 连接
     await redis_client.close()

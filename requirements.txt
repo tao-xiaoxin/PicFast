@@ -17,3 +17,7 @@ python-multipart==0.0.20
 sqlalchemy[asyncio]>=2.0.0
 asyncmy==0.2.10
 aiomysql==0.2.0
+python-jose[cryptography]==3.3.0
+passlib[argon2]==1.7.4
+cryptography==42.0.4
+bcrypt==4.1.2

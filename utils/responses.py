@@ -1,13 +1,30 @@
 # -*- coding: utf-8 -*-
 """
+@Author: tao-xiaoxin
+@DateTime: 2025-02-19 13:33:37
 @Remark: FastAPI 标准 API 响应类
 """
+
 import dataclasses
 import json
+from datetime import datetime, date
 from fastapi.responses import JSONResponse, StreamingResponse, PlainTextResponse
 from typing import Any, Optional, Generator
 from pydantic import BaseModel
 from enum import Enum
+
+
+class DateTimeEncoder(json.JSONEncoder):
+    """处理 datetime 的 JSON 编码器"""
+
+    def default(self, obj):
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        if isinstance(obj, BaseModel):
+            return obj.model_dump()
+        if dataclasses.is_dataclass(obj):
+            return dataclasses.asdict(obj)
+        return super().default(obj)
 
 
 class CustomCodeBase(Enum):
@@ -15,16 +32,12 @@ class CustomCodeBase(Enum):
 
     @property
     def code(self):
-        """
-        获取状态码
-        """
+        """获取状态码"""
         return self.value[0]
 
     @property
     def msg(self):
-        """
-        获取状态码信息
-        """
+        """获取状态码信息"""
         return self.value[1]
 
 
@@ -159,32 +172,22 @@ class StandardAPIResponse(JSONResponse):
     """
     标准 API 响应类，提供统一的成功、详情和错误响应格式
 
-    此类提供了一种标准化的方法来处理 API 响应，包括成功、详情和错误情况。
-
-    .. tip::
-        此类中的方法将返回 ResponseModel 模型，作为一种编码风格而存在。
-        使用这个类可以确保您的 API 响应格式统一且易于理解。
+    新增特性:
+    - 支持 datetime/date 类型的自动序列化
+    - 支持 Pydantic 模型的自动序列化
+    - 支持 dataclass 的自动序列化
 
     使用示例:
         @router.get('/items')
         def get_items() -> ResponseModel:
-            items = [{"id": 1, "name": "Item 1"}, {"id": 2, "name": "Item 2"}]
-            return StandardAPIResponse.success(data=items, page=1, limit=10, total=2)
-
-        @router.get('/items/{item_id}')
-        def get_item(item_id: int) -> ResponseModel:
-            item = {"id": item_id, "name": f"Item {item_id}"}
-            return StandardAPIResponse.detail(data=item)
-
-        @router.post('/items')
-        def create_item() -> ResponseModel:
-            # 假设创建失败
-            return StandardAPIResponse.error(msg="Failed to create item", code=4001)
-
-    属性:
-        success (classmethod): 用于返回成功响应
-        detail (classmethod): 用于返回详细信息响应
-        error (classmethod): 用于返回错误响应
+            items = [
+                {
+                    "id": 1,
+                    "name": "Item 1",
+                    "created_at": datetime.now()
+                }
+            ]
+            return StandardAPIResponse.success(data=items)
     """
 
     def __init__(
@@ -199,7 +202,6 @@ class StandardAPIResponse(JSONResponse):
             total: Optional[int] = None,
     ) -> None:
         if page is not None and limit is not None:
-            # 如果提供了分页参数，则构造分页响应
             if total is None:
                 total = len(data) if isinstance(data, list) else 0
             content_data = {
@@ -209,7 +211,6 @@ class StandardAPIResponse(JSONResponse):
                 "data": data
             }
         else:
-            # 否则，直接使用提供的数据
             content_data = data
 
         content = ResponseModel(
@@ -217,7 +218,13 @@ class StandardAPIResponse(JSONResponse):
             data=content_data,
             msg=msg
         )
-        super().__init__(content=content.dict(), status_code=status_code, headers=headers)
+
+        # 使用 model_dump() 替代 dict()，以支持更好的序列化
+        super().__init__(
+            content=content.model_dump(),
+            status_code=status_code,
+            headers=headers
+        )
 
     @classmethod
     def success(cls, data: Any = None, msg: str = "success", **kwargs):
@@ -259,14 +266,7 @@ class StandardAPIResponse(JSONResponse):
 
     @classmethod
     def stream(cls, content: Generator[Any, None, None], msg: str = "success", content_type: str = "application/json"):
-        """
-        返回流式响应
-
-        :param content: 生成器函数，用于生成流式内容
-        :param msg: 响应消息
-        :param content_type: 内容类型
-        :return: StreamingResponse 实例
-        """
+        """重写 stream 方法以支持 datetime 序列化"""
 
         async def stream_content():
             try:
@@ -275,13 +275,13 @@ class StandardAPIResponse(JSONResponse):
                         "code": 200,
                         "data": item,
                         "msg": msg
-                    }) + "\n"
+                    }, cls=DateTimeEncoder) + "\n"
             except Exception as e:
                 yield json.dumps({
                     "code": 500,
                     "data": None,
                     "msg": f"Stream error: {str(e)}"
-                })
+                }, cls=DateTimeEncoder)
 
         return StreamingResponse(stream_content(), media_type=content_type)
 
@@ -312,6 +312,25 @@ class StandardAPIResponse(JSONResponse):
             status_code=status_code,
             headers=headers
         )
+
+    def render(self, content: Any) -> bytes:
+        """
+        重写 render 方法，使用自定义 JSON 编码器
+
+        Args:
+            content: 要序列化的内容
+
+        Returns:
+            bytes: 序列化后的字节串
+        """
+        return json.dumps(
+            content,
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=None,
+            separators=(",", ":"),
+            cls=DateTimeEncoder,
+        ).encode("utf-8")
 
 
 APIResponse = StandardAPIResponse

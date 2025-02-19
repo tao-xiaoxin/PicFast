@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os.path
 from functools import lru_cache
-from typing import Literal, Optional
+from typing import Literal, Optional, List
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from core.path_conf import BASE_DIR
@@ -56,9 +56,6 @@ class Settings(BaseSettings):
     # Static Server
     STATIC_FILES: bool = True
 
-    # Limiter
-    # LIMITER_REDIS_PREFIX: str = 'limiter'
-
     # DateTime
     DATETIME_TIMEZONE: str = 'Asia/Shanghai'
     DATETIME_FORMAT: str = '%Y-%m-%d %H:%M:%S'
@@ -91,15 +88,32 @@ class Settings(BaseSettings):
     # MySQL连接特性配置
     MYSQL_CHARSET: str = os.getenv("MYSQL_CHARSET", "utf8mb4")
 
-    # # Token
-    # TOKEN_ALGORITHM: str = 'HS256'  # 算法
-    # TOKEN_EXPIRE_SECONDS: int = 60 * 60 * 24 * 1  # 过期时间，单位：秒
-    # TOKEN_REFRESH_EXPIRE_SECONDS: int = 60 * 60 * 24 * 7  # 刷新过期时间，单位：秒
-    # TOKEN_REDIS_PREFIX: str = 'token'
-    # TOKEN_REFRESH_REDIS_PREFIX: str = 'token:refresh'
-    # TOKEN_EXCLUDE: list[str] = [  # JWT / RBAC 白名单
-    #     f'{API_V1_STR}/auth/login',
-    # ]
+    # Token
+    TOKEN_ALGORITHM: str = 'HS256'  # 算法
+    TOKEN_EXPIRE_SECONDS: int = 60 * 60 * 24 * 1  # 过期时间，单位：秒
+    TOKEN_REFRESH_EXPIRE_SECONDS: int = 60 * 60 * 24 * 7  # 刷新过期时间，单位：秒
+    TOKEN_REDIS_PREFIX: str = 'pf:token'
+    TOKEN_REFRESH_REDIS_PREFIX: str = 'pf:token:refresh'
+
+    @property
+    def TOKEN_EXCLUDE(self) -> List[str]:
+        """
+        JWT / RBAC 白名单
+        使用 property 替代可变默认值
+
+        包含：
+        1. 认证相关接口
+        2. 图片获取接口
+
+        Returns:
+            List[str]: 白名单路径列表
+        """
+        return [
+            # 认证相关
+            f"{self.API_V1_STR}/auth/token",
+            # 图片相关 - 使用占位符表示动态路径
+            f"{self.API_V1_STR}/image/{{md5_key}}",  # 使用双大括号来转义
+        ]
 
     # Log
     LOG_LEVEL: str = 'INFO'
