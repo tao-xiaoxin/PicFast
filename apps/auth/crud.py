@@ -253,7 +253,7 @@ class AccessKeyCRUD:
             result = await db.execute(
                 update(AccessKey)
                 .where(AccessKey.access_key == access_key)
-                .values(last_used_at=timezone.now())
+                .values(last_used_at=timezone.now)
             )
             await db.commit()
             return result.rowcount > 0

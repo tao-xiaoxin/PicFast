@@ -131,8 +131,8 @@ class AuthService:
                 detail="Failed to retrieve access keys"
             )
 
+    @staticmethod
     async def issue_token(
-            self,
             request: Request,
             db: AsyncSession,
             access_key: str,
@@ -149,9 +149,6 @@ class AuthService:
 
         Returns:
             Dict: 包含令牌的响应数据
-
-        Raises:
-            HTTPException: 签发失败时抛出异常
         """
         try:
             # 验证访问密钥
@@ -160,7 +157,12 @@ class AuthService:
                 access_key,
                 secret_key
             )
-            access_token, refresh_token = await self._validate_and_generate_tokens(key_info, db, access_key)
+
+            access_token, refresh_token = await AuthService._validate_and_generate_tokens(
+                key_info,
+                db,
+                access_key
+            )
 
             return {
                 "access_token": access_token,
@@ -234,8 +236,8 @@ class AuthService:
             token_data
         )
 
+    @staticmethod
     async def refresh_credentials(
-            self,
             request: Request,
             db: AsyncSession,
             refresh_token: str,
@@ -279,7 +281,7 @@ class AuthService:
             # 3. 验证访问密钥状态
             key_info = await AccessKeyCRUD.get_access_key_by_access_key(db, access_key)
 
-            access_token, new_refresh_token = await self._validate_and_generate_tokens(key_info, db, access_key)
+            access_token, new_refresh_token = await AuthService._validate_and_generate_tokens(key_info, db, access_key)
 
             return {
                 "access_token": access_token,
