@@ -303,30 +303,27 @@ class AuthService:
     async def revoke_credentials(
             request: Request,
             db: AsyncSession,
-            current_key: Dict
-    ) -> Dict:
+            access_key: str
+    ) -> bool:
         """
-        撤销访问凭证
+        撤销访问凭证并禁用密钥
 
         Args:
             request: 请求对象
             db: 数据库会话
-            current_key: 当前密钥信息
+            access_key: 当前密钥
 
         Returns:
             Dict: 撤销结果
         """
         try:
             # 撤销令牌
-            await token.revoke_tokens(current_key["key"])
+            await token.revoke_tokens(access_key)
 
             # 更新密钥状态
-            await AccessKeyCRUD.disable_access_key(db, current_key["key"])
+            await AccessKeyCRUD.disable_access_key(db, access_key)
 
-            return {
-                "message": "Credentials successfully revoked",
-                "key": current_key["key"]
-            }
+            return True
 
         except Exception as e:
             log.error(f"Credential revocation failed: {str(e)}")

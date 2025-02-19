@@ -432,6 +432,34 @@ class TokenManager:
 
         return await self.verify_token(credentials.credentials, "access")
 
+    @staticmethod
+    async def revoke_tokens(access_key: str) -> bool:
+        """
+        撤销指定 access_key 的所有令牌（包括访问令牌和刷新令牌）
+
+        Args:
+            access_key: 要撤销的 access_key
+
+        Returns:
+            bool: 撤销是否成功
+
+        Raises:
+            HTTPException: 撤销失败时抛出异常
+        """
+        try:
+            # 使用 delete_prefix 删除所有访问令牌和刷新令牌
+            await redis_client.delete_prefix(f"{settings.TOKEN_REDIS_PREFIX}:{access_key}")
+            await redis_client.delete_prefix(f"{settings.TOKEN_REFRESH_REDIS_PREFIX}:{access_key}")
+
+            return True
+
+        except Exception as e:
+            log.error(f"Failed to revoke tokens for access_key {access_key}: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to revoke tokens"
+            )
+
 
 # 创建全局Token管理器实例
 token_manager = TokenManager()

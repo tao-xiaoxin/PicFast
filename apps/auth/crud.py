@@ -392,3 +392,41 @@ class AccessKeyCRUD:
         except Exception as e:
             log.error(f"Failed to get access key by access_key {access_key}: {str(e)}")
             return None
+
+    @staticmethod
+    async def disable_access_key(
+            db: AsyncSession,
+            access_key: str
+    ) -> bool:
+        """
+        禁用指定的访问密钥
+
+        Args:
+            db: 数据库会话
+            access_key: 要禁用的访问密钥
+
+        Returns:
+            bool: 是否成功禁用访问密钥
+        """
+        try:
+            result = await db.execute(
+                update(AccessKey)
+                .where(AccessKey.access_key == access_key)
+                .values(
+                    is_enabled=False,
+                    last_used_at=timezone.now
+                )
+            )
+            await db.commit()
+
+            if result.rowcount > 0:
+                log.success(f"Successfully disabled access key: {access_key}")
+                return True
+            else:
+                log.warning(f"Access key not found: {access_key}")
+                return False
+
+        except Exception as e:
+            await db.rollback()
+            log.error(f"Failed to disable access key {access_key}: {str(e)}")
+            return False

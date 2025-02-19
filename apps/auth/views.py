@@ -66,8 +66,8 @@ async def issue_token(
     Args:
         request: 请求对象
         db: 数据库会话
-        x_access_key: 访问密钥（从请求头获取）
-        x_secret_key: 密钥（从请求头获取）
+        x_access_key: 访问密钥
+        x_secret_key: 密钥
 
     Returns:
         TokenResponse: 包含访问令牌和刷新令牌的响应
@@ -108,47 +108,22 @@ async def refresh_token(
 async def revoke_token(
         request: Request,
         db: CurrentSession,
-        current_key: dict = Depends(token_manager.verify_request)
-) -> dict:
+        x_access_key: str = Body(..., description="访问密钥", embed=True),
+) -> ResponseModel:
     """
-    撤销访问令牌
+    撤销访问令牌并禁用当前访问密钥信息
 
     Args:
         request: 请求对象
         db: 数据库会话
-        current_key: 当前访问密钥信息
+        x_access_key: 访问密钥
 
     Returns:
         dict: 撤销结果
     """
-    return await AuthService.revoke_credentials(
+    await AuthService.revoke_credentials(
         request,
         db,
-        current_key
+        x_access_key
     )
-
-
-async def verify_token(
-        request: Request,
-        db: CurrentSession,
-        current_key: dict = Depends(token_manager.verify_request)
-) -> dict:
-    """
-    验证访问令牌
-
-    Args:
-        request: 请求对象
-        db: 数据库会话
-        current_key: 当前访问密钥信息
-
-    Returns:
-        dict: 令牌验证结果
-    """
-    return {
-        "valid": True,
-        "key_info": {
-            "key_id": current_key.get("kid"),
-            "name": current_key.get("name"),
-            "access_key": current_key.get("key")
-        }
-    }
+    return APIResponse.success("Token revoked successfully！")

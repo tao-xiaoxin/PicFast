@@ -11,7 +11,6 @@ from apps.auth.views import (
     issue_token,
     refresh_token,
     revoke_token,
-    verify_token
 )
 
 # 创建认证路由器
@@ -70,13 +69,4 @@ auth_router.add_api_route(
     summary="撤销访问令牌",
     description="撤销当前的访问凭证",
     response_description="返回撤销结果"
-)
-
-auth_router.add_api_route(
-    path="/token/verify",
-    endpoint=verify_token,
-    methods=["GET"],
-    summary="验证访问令牌",
-    description="验证当前的访问令牌是否有效",
-    response_description="返回令牌验证结果"
 )
