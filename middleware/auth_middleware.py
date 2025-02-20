@@ -7,7 +7,7 @@ Created time: 2025-02-19 11:16:02
 """
 from typing import Any, Coroutine
 
-from fastapi import Request, Response
+from fastapi import Request, Response, HTTPException
 from fastapi.security.utils import get_authorization_scheme_param
 from starlette.authentication import AuthCredentials, AuthenticationBackend, AuthenticationError
 from starlette.requests import HTTPConnection
@@ -16,7 +16,7 @@ from apps.auth.crud import AccessKeyCRUD
 from core.conf import settings
 from core.engine import mysql_manager
 from utils.token_manager import token_manager as token
-
+from utils.exception import TokenError
 from utils.log import log
 from utils.responses import APIResponse
 
@@ -95,15 +95,15 @@ class AuthMiddleware(AuthenticationBackend):
         # 2. 对于非免认证路径，必须提供认证头
         auth_header = request.headers.get("Authorization")
         token_type = request.headers.get("X-Token-Type")
-        if not token_type:
-            raise _AuthenticationError(
-                code=401,
-                message="Token type required"
-            )
         if not auth_header:
             raise _AuthenticationError(
                 code=401,
                 message="Authentication required"
+            )
+        if not token_type:
+            raise _AuthenticationError(
+                code=401,
+                message="Token type required"
             )
 
         # 3. 验证认证方案
@@ -145,14 +145,23 @@ class AuthMiddleware(AuthenticationBackend):
             )
 
             return AuthCredentials(["authenticated"]), user
-
-        except _AuthenticationError:
-            raise
+        except TokenError as e:
+            raise _AuthenticationError(
+                code=e.code,
+                message=e.detail,
+                headers=e.headers
+            )
+        except HTTPException as e:
+            raise _AuthenticationError(
+                message=e.detail,
+                headers=e.headers
+            )
         except Exception as e:
+            # 处理其他未预期的异常
             log.error(f"Authentication failed: {str(e)}")
             raise _AuthenticationError(
                 code=getattr(e, "code", 500),
-                message=getattr(e, "message", "Internal server error")
+                message=getattr(e, "message", e)
             )
 
     @staticmethod
