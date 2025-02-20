@@ -14,6 +14,7 @@ from pydantic import BaseModel
 
 from core.conf import settings
 from core.engine import redis_client
+from utils.exception import TokenError
 from utils.timezone import timezone
 from utils.log import log
 from utils.security import hash_password, verify_password
@@ -376,10 +377,7 @@ class TokenManager:
 
         # 验证Token类型
         if payload.get('type') != token_type:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid token type"
-            )
+            raise TokenError(msg="Invalid token type")
 
         # 验证Redis中的Token
         subject = payload['sub']
@@ -389,10 +387,7 @@ class TokenManager:
 
         redis_token = await redis_client.get(key)
         if not redis_token or redis_token != token:
-            raise HTTPException(
-                status_code=401,
-                detail="Token is invalid or expired"
-            )
+            raise TokenError(msg="Token is invalid or expired")
 
         return payload
 
