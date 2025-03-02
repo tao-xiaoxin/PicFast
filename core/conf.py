@@ -108,23 +108,23 @@ class Settings(BaseSettings):
         Returns:
             List[str]: 白名单路径列表
         """
+        # Base paths that are always excluded
+        base_paths = [
+            # 认证相关
+            f"{self.API_V1_STR}/auth/token",
+            # 图片相关 - 使用正则表达式匹配 MD5 哈希
+            f"{self.API_V1_STR}/image/[0-9a-f]{{32}}",  # 注意这里使用了正则表达式匹配32位十六进制MD5值
+        ]
+
+        # Add documentation paths in dev environment
         if self.ENVIRONMENT == 'dev':
-            return [
-                # 认证相关
-                f"{self.API_V1_STR}/auth/token",
-                # 图片相关 - 使用占位符表示动态路径
-                f"{self.API_V1_STR}/image/{{md5_key}}",  # 使用双大括号来转义
+            base_paths.extend([
                 self.DOCS_URL,
                 self.REDOCS_URL,
                 self.OPENAPI_URL,
-            ]
-        else:
-            return [
-                # 认证相关
-                f"{self.API_V1_STR}/auth/token",
-                # 图片相关 - 使用占位符表示动态路径
-                f"{self.API_V1_STR}/image/{{md5_key}}",  # 使用双大括号来转义
-            ]
+            ])
+
+        return base_paths
 
     # Log
     LOG_LEVEL: str = 'INFO'
