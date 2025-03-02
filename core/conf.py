@@ -108,12 +108,23 @@ class Settings(BaseSettings):
         Returns:
             List[str]: 白名单路径列表
         """
-        return [
-            # 认证相关
-            f"{self.API_V1_STR}/auth/token",
-            # 图片相关 - 使用占位符表示动态路径
-            f"{self.API_V1_STR}/image/{{md5_key}}",  # 使用双大括号来转义
-        ]
+        if self.ENVIRONMENT == 'dev':
+            return [
+                # 认证相关
+                f"{self.API_V1_STR}/auth/token",
+                # 图片相关 - 使用占位符表示动态路径
+                f"{self.API_V1_STR}/image/{{md5_key}}",  # 使用双大括号来转义
+                self.DOCS_URL,
+                self.REDOCS_URL,
+                self.OPENAPI_URL,
+            ]
+        else:
+            return [
+                # 认证相关
+                f"{self.API_V1_STR}/auth/token",
+                # 图片相关 - 使用占位符表示动态路径
+                f"{self.API_V1_STR}/image/{{md5_key}}",  # 使用双大括号来转义
+            ]
 
     # Log
     LOG_LEVEL: str = 'INFO'
