@@ -92,7 +92,7 @@ PicFast/
 2. 使用 `gunicorn` 和 `deploy/gunicorn.conf.py` 配置文件启动应用，执行如下命令启动：
 
 ```
-chmod +x start_app.sh
+chmod +x start.sh
 ./start_app.sh 8099
 ```
 
