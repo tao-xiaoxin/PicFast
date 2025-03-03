@@ -49,7 +49,7 @@ PicFast 是一款高效、快速的图片缓存服务，旨在为开发者和企
    uvicorn main:app --reload --host 0.0.0.0 --port 8099
    ```
 5. 访问应用：
-    - API文档：http://localhost:8099/docs
+    - API文档：http://localhost:8099/api/v1/docs
 
 ## 项目结构
 
@@ -57,6 +57,7 @@ PicFast 是一款高效、快速的图片缓存服务，旨在为开发者和企
 PicFast/
 ├── apps/                 # 应用模块目录
 ├── core/                 # 核心配置和功能
+├── deploy                # 部署相关配置
 ├── middleware/           # 中间件
 ├── utils/               # 工具函数
 ├── __pycache__/
@@ -67,6 +68,8 @@ PicFast/
 ├── main.py             # 主程序入口
 └── requirements.txt     # 依赖包列表
 ```
+## 在Typora 中使用
++ 请参考[`Typora` 使用指南](docs/typora/README.md)
 
 ## 开发指南
 
@@ -84,7 +87,7 @@ PicFast/
 ## 部署
 
 1. 确保已正确设置所有环境变量。
-2. 使用 `gunicorn` 和 `deployment/gunicorn.conf.py` 配置文件启动应用。
+2. 使用 `gunicorn` 和 `deploy/gunicorn.conf.py` 配置文件启动应用。
 3. 考虑使用 Nginx 作为反向代理。
 
 ## 版本控制

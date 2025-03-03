@@ -5,6 +5,7 @@
 Created by: tao-xiaoxin
 Created time: 2025-02-19 11:16:02
 """
+import re
 from typing import Any, Coroutine
 
 from fastapi import Request, Response, HTTPException
@@ -89,8 +90,18 @@ class AuthMiddleware(AuthenticationBackend):
             _AuthenticationError: 认证失败时抛出
         """
         # 1. 检查是否为免认证路径
-        if request.url.path in settings.AUTH_EXCLUDE_PATHS:
-            return None
+        path = request.url.path
+
+        # 检查路径是否匹配白名单中的任何模式（包括正则表达式模式）
+        for pattern in settings.AUTH_EXCLUDE_PATHS:
+            if pattern == path:  # 直接匹配
+                return None
+            elif pattern.find('[') >= 0:  # 如果包含 '[', 可能是正则表达式
+                try:
+                    if re.match(f"^{pattern}$", path):
+                        return None
+                except re.error:
+                    continue  # 如果正则表达式无效，继续检查下一个
 
         # 2. 对于非免认证路径，必须提供认证头
         auth_header = request.headers.get("Authorization")
