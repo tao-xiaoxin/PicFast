@@ -68,6 +68,8 @@ PicFast/
 ├── main.py             # 主程序入口
 └── requirements.txt     # 依赖包列表
 ```
+## 在Typora 中使用
++ 请参考[`Typora` 使用指南](docs/typora/README.md)
 
 ## 开发指南
 
