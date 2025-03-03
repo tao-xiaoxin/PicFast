@@ -68,7 +68,9 @@ PicFast/
 ├── main.py             # 主程序入口
 └── requirements.txt     # 依赖包列表
 ```
+
 ## 在Typora 中使用
+
 + 请参考[`Typora` 使用指南](docs/typora/README.md)
 
 ## 开发指南
@@ -87,8 +89,14 @@ PicFast/
 ## 部署
 
 1. 确保已正确设置所有环境变量。
-2. 使用 `gunicorn` 和 `deploy/gunicorn.conf.py` 配置文件启动应用。
-3. 考虑使用 Nginx 作为反向代理。
+2. 使用 `gunicorn` 和 `deploy/gunicorn.conf.py` 配置文件启动应用，执行如下命令启动：
+
+```
+chmod +x start_app.sh
+./start_app.sh 8099
+```
+
+3. 最后使用 Nginx 作为反向代理并配置域名。
 
 ## 版本控制
 
