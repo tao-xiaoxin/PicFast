@@ -93,7 +93,7 @@ PicFast/
 
 ```
 chmod +x start.sh
-./start_app.sh 8099
+./start.sh 8099
 ```
 
 3. 最后使用 Nginx 作为反向代理并配置域名。

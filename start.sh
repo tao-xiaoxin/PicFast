@@ -6,7 +6,7 @@
 # Default values
 DEFAULT_PORT=8080
 DEFAULT_WORKERS=2
-DEFAULT_LOG_LEVEL="info"
+DEFAULT_LOG_LEVEL="INFO"
 
 # Read port from command line or prompt for it
 if [ -z "$1" ]; then
@@ -67,7 +67,7 @@ LOGS_DIR="${SCRIPT_DIR}/logs"
 mkdir -p "${LOGS_DIR}"
 
 # Create the start command
-START_CMD="gunicorn -c ${CONFIG_PATH} ${APP_MODULE}"
+START_CMD="gunicorn -c ${CONFIG_PATH} --bind ${BIND} ${APP_MODULE}"
 
 # Start the application within a screen session
 echo "Starting gunicorn in screen session '${SCREEN_NAME}'..."
