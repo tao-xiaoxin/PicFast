@@ -4,8 +4,10 @@ import os
 # # 设置工作目录并获取项目根目录的绝对路径
 chdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# 使用单进程模式来避免 CUDA 初始化问题
 workers = 1
+
+# 监听队列
+backlog = 512
 
 # 在单进程模式下，使用多线程来提高并发性
 threads = int(os.environ.get('GUNICORN_THREADS', multiprocessing.cpu_count() * 2 + 1))
@@ -14,13 +16,13 @@ threads = int(os.environ.get('GUNICORN_THREADS', multiprocessing.cpu_count() * 2
 worker_class = "uvicorn.workers.UvicornWorker"
 
 # 绑定的 IP 和端口
-# bind = "0.0.0.0:8098"
+bind = os.environ.get("BIND", "0.0.0.0:8099")
 
 # 日志目录
 log_dir = os.environ.get('LOG_DIR', os.path.join(chdir, 'logs'))
 # 确保日志目录存在
 os.makedirs(log_dir, exist_ok=True)
-loglevel = "info"  # 使用 debug 级别以获取更详细的日志
+loglevel = "INFO"  # 使用 DEBUG 级别以获取更详细的日志
 accesslog = os.path.join(log_dir, 'gunicorn_access.log')
 errorlog = os.path.join(log_dir, 'gunicorn_error.log')
 
